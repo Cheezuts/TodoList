@@ -135,6 +135,24 @@
             padding: 20px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.08);
             position: relative;
+            cursor: grab;
+            transition: all 0.3s ease;
+        }
+
+        .column:active {
+            cursor: grabbing;
+        }
+
+        .column.dragging {
+            opacity: 0.6;
+            transform: rotate(2deg) scale(1.02);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            z-index: 1000;
+        }
+
+        .column.drag-over {
+            transform: translateX(10px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
         }
 
         .column-header {
@@ -554,6 +572,22 @@
                 min-width: auto;
                 margin: 0 10px;
                 padding: 15px;
+                cursor: grab;
+            }
+
+            .column:active {
+                cursor: grabbing;
+            }
+
+            .column.dragging {
+                opacity: 0.7;
+                transform: scale(0.98);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            }
+
+            .column.drag-over {
+                transform: translateY(-5px);
+                margin-bottom: 20px;
             }
             
             .column-header {
@@ -869,6 +903,8 @@
         let editingTodoId = null;
         let draggedTodo = null;
         let draggedTab = null;
+        let draggedColumn = null;
+        let draggedColumnIndex = null;
         let dropIndicator = null;
 
         // Initialisation
@@ -1156,8 +1192,18 @@
                 return;
             }
 
-            const columnsHtml = currentTab.columns.map(column => `
-                <div class="column" style="background-color: ${column.color}" ondrop="drop(event, '${column.id}')" ondragover="allowDrop(event)">
+            const columnsHtml = currentTab.columns.map((column, index) => `
+                <div class="column" 
+                     style="background-color: ${column.color}" 
+                     draggable="true"
+                     data-column-id="${column.id}"
+                     data-column-index="${index}"
+                     ondrop="drop(event, '${column.id}')" 
+                     ondragover="allowDrop(event)"
+                     ondragstart="dragColumnStart(event, '${column.id}', ${index})"
+                     ondragend="dragColumnEnd(event)"
+                     ondragenter="dragColumnEnter(event, ${index})"
+                     ondragleave="dragColumnLeave(event)">
                     <div class="column-header" style="background-color: ${column.color}">
                         <div class="column-title">${column.name}</div>
                         <div class="column-actions">
@@ -1458,6 +1504,76 @@
             });
         }
 
+        // Gestion du drag and drop pour les colonnes
+        function dragColumnStart(event, columnId, columnIndex) {
+            draggedColumn = columnId;
+            draggedColumnIndex = columnIndex;
+            event.target.classList.add('dragging');
+            
+            // Empêcher le drag & drop des todos pendant le drag d'une colonne
+            event.target.querySelectorAll('.todo-item').forEach(todo => {
+                todo.draggable = false;
+            });
+        }
+
+        function dragColumnEnd(event) {
+            event.target.classList.remove('dragging');
+            
+            // Réactiver le drag & drop des todos
+            event.target.querySelectorAll('.todo-item').forEach(todo => {
+                todo.draggable = !todo.dataset.locked;
+            });
+            
+            // Nettoyer les classes de drag-over
+            document.querySelectorAll('.column').forEach(column => {
+                column.classList.remove('drag-over');
+            });
+            
+            draggedColumn = null;
+            draggedColumnIndex = null;
+        }
+
+        function dragColumnEnter(event, targetIndex) {
+            event.preventDefault();
+            
+            if (!draggedColumn || draggedColumnIndex === targetIndex) return;
+            
+            event.currentTarget.classList.add('drag-over');
+        }
+
+        function dragColumnLeave(event) {
+            event.currentTarget.classList.remove('drag-over');
+        }
+
+        // Override de la fonction allowDrop pour gérer les colonnes
+        const originalAllowDrop = allowDrop;
+        allowDrop = function(event) {
+            event.preventDefault();
+            
+            // Si on drag une colonne, gérer le réarrangement des colonnes
+            if (draggedColumn) {
+                const targetColumn = event.currentTarget;
+                const targetIndex = parseInt(targetColumn.dataset.columnIndex);
+                
+                if (draggedColumnIndex !== targetIndex) {
+                    const currentTab = tabs.find(t => t.id === currentTabId);
+                    
+                    // Réorganiser les colonnes
+                    const draggedColumnObj = currentTab.columns.splice(draggedColumnIndex, 1)[0];
+                    currentTab.columns.splice(targetIndex, 0, draggedColumnObj);
+                    
+                    // Mettre à jour l'index de la colonne draggée
+                    draggedColumnIndex = targetIndex;
+                    
+                    saveData();
+                    renderColumns();
+                }
+            } else {
+                // Comportement original pour les todos
+                originalAllowDrop(event);
+            }
+        };
+
         // Gestion des couleurs prédéfinies
         function selectPresetColor(color, type) {
             if (type === 'column') {
@@ -1625,7 +1741,14 @@
         let isDragging = false;
 
         document.addEventListener('touchstart', function(e) {
+            // Gestion du touch pour les todos
             if (e.target.closest('.todo-item[draggable="true"]') && !e.target.closest('.todo-btn')) {
+                touchStartY = e.touches[0].clientY;
+                touchStartX = e.touches[0].clientX;
+                isDragging = false;
+            }
+            // Gestion du touch pour les colonnes
+            else if (e.target.closest('.column[draggable="true"]') && !e.target.closest('.column-btn, .todo-item, .add-todo-btn')) {
                 touchStartY = e.touches[0].clientY;
                 touchStartX = e.touches[0].clientX;
                 isDragging = false;
