@@ -1,0 +1,1656 @@
+
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List Avancée</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .tabs-container {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+            overflow-x: auto;
+            align-items: center;
+            padding: 10px 20px;
+        }
+
+        .tab {
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 10px 10px 0 0;
+            padding: 12px 20px;
+            margin-right: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tab.dragging {
+            opacity: 0.5;
+            transform: rotate(3deg);
+        }
+
+        .tab-name {
+            cursor: grab;
+            flex: 1;
+        }
+
+        .tab-name:active {
+            cursor: grabbing;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .tab:hover:not(.active) {
+            background: #e9ecef;
+        }
+
+        .tab-close {
+            margin-left: 10px;
+            cursor: pointer;
+            opacity: 0.7;
+            font-weight: bold;
+        }
+
+        .tab-close:hover {
+            opacity: 1;
+            color: #ff4757;
+        }
+
+        .add-tab-btn {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s ease;
+            margin-left: 10px;
+        }
+
+        .add-tab-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .tab-content {
+            padding: 20px;
+            min-height: 500px;
+        }
+
+        .columns-container {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 20px;
+        }
+
+        .column {
+            min-width: 300px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            position: relative;
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .column-title {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .column-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .column-btn {
+            background: rgba(255,255,255,0.8);
+            border: none;
+            border-radius: 5px;
+            padding: 5px 8px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: all 0.2s ease;
+        }
+
+        .column-btn:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+
+        .todos-container {
+            min-height: 200px;
+        }
+
+        .todo-item {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: grab;
+            transition: all 0.3s ease;
+            position: relative;
+            border-left: 4px solid #007bff;
+        }
+
+        .todo-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        }
+
+        .todo-item.dragging {
+            opacity: 0.5;
+            transform: rotate(5deg);
+        }
+
+        .todo-item.completed {
+            opacity: 0.7;
+            text-decoration: line-through;
+            background: #f8f9fa !important;
+            color: #6c757d;
+        }
+
+        .todo-item.completed .todo-content {
+            filter: invert(1) hue-rotate(180deg);
+        }
+
+        .todo-item.locked {
+            border-right: 4px solid #ffd700;
+        }
+
+        .todo-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .todo-content {
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .todo-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .todo-btn {
+            background: transparent;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 5px 8px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: all 0.2s ease;
+        }
+
+        .todo-btn:hover {
+            background: #e9ecef;
+        }
+
+        .add-column-btn, .add-todo-btn {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 15px 25px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .add-column-btn:hover, .add-todo-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            animation: modalSlide 0.3s ease-out;
+        }
+
+        @keyframes modalSlide {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #ff4757;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .color-picker-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .preset-colors {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .color-option:hover, .color-option.selected {
+            border-color: #333;
+            transform: scale(1.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .drop-indicator {
+            height: 2px;
+            background: #007bff;
+            margin: 5px 0;
+            border-radius: 1px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .drop-indicator.active {
+            opacity: 1;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            padding: 40px;
+        }
+
+        /* Améliorations pour le touch */
+        .tab, .column-btn, .todo-btn, .add-tab-btn, .add-column-btn, .add-todo-btn, .btn-primary, .btn-secondary {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        .todo-item[draggable="true"] {
+            touch-action: none;
+            -webkit-touch-callout: none;
+        }
+
+        .color-option {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Effets hover adaptés pour mobile */
+        @media (hover: hover) {
+            .tab:hover:not(.active), 
+            .column-btn:hover, 
+            .todo-btn:hover, 
+            .add-tab-btn:hover, 
+            .add-column-btn:hover, 
+            .add-todo-btn:hover {
+                transform: translateY(-2px);
+            }
+        }
+
+        /* Pour les appareils tactiles sans hover */
+        @media (hover: none) {
+            .tab:active, 
+            .column-btn:active, 
+            .todo-btn:active, 
+            .add-tab-btn:active, 
+            .add-column-btn:active, 
+            .add-todo-btn:active {
+                transform: scale(0.95);
+                transition: transform 0.1s ease;
+            }
+            
+            .color-option:active {
+                transform: scale(0.9);
+                transition: transform 0.1s ease;
+            }
+        }
+
+        /* Tablette */
+        @media (max-width: 1024px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2.2em;
+            }
+            
+            .columns-container {
+                gap: 15px;
+                padding: 0 10px;
+            }
+            
+            .column {
+                min-width: 280px;
+            }
+            
+            .modal-content {
+                width: 95%;
+                max-width: 400px;
+                margin: 5% auto;
+                padding: 20px;
+            }
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                margin: 0;
+                border-radius: 10px;
+                box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            }
+            
+            .header {
+                padding: 15px;
+                text-align: center;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+                margin-bottom: 5px;
+            }
+            
+            .header p {
+                font-size: 0.9em;
+            }
+            
+            /* Onglets responsive */
+            .tabs-container {
+                padding: 8px;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+            
+            .tabs-container::-webkit-scrollbar {
+                display: none;
+            }
+            
+            .tab {
+                padding: 10px 12px;
+                font-size: 0.85em;
+                min-width: 100px;
+                flex-shrink: 0;
+                margin-right: 8px;
+            }
+            
+            .tab-name {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 80px;
+            }
+            
+            .add-tab-btn {
+                padding: 10px 15px;
+                font-size: 0.85em;
+                margin-left: 8px;
+                flex-shrink: 0;
+            }
+            
+            /* Colonnes en mode mobile */
+            .columns-container {
+                flex-direction: column;
+                gap: 15px;
+                padding: 0;
+            }
+            
+            .column {
+                min-width: auto;
+                margin: 0 10px;
+                padding: 15px;
+            }
+            
+            .column-header {
+                padding: 8px;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            
+            .column-title {
+                font-size: 1.1em;
+                margin-bottom: 5px;
+                flex: 1;
+                min-width: 120px;
+            }
+            
+            .column-actions {
+                flex-wrap: wrap;
+                gap: 3px;
+            }
+            
+            .column-btn {
+                padding: 6px 8px;
+                font-size: 0.9em;
+                min-width: 30px;
+            }
+            
+            /* Todos en mode mobile */
+            .todo-item {
+                padding: 12px;
+                margin-bottom: 8px;
+            }
+            
+            .todo-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .todo-content {
+                font-size: 0.95em;
+                line-height: 1.4;
+                margin-right: 0;
+                word-wrap: break-word;
+            }
+            
+            .todo-actions {
+                align-self: flex-end;
+                gap: 3px;
+                flex-wrap: wrap;
+            }
+            
+            .todo-btn {
+                padding: 6px 8px;
+                font-size: 0.8em;
+                min-width: 30px;
+            }
+            
+            /* Boutons principaux */
+            .add-column-btn, .add-todo-btn {
+                padding: 12px 20px;
+                font-size: 0.9em;
+                margin: 8px;
+            }
+            
+            /* États vides */
+            .empty-state {
+                padding: 30px 20px;
+                font-size: 0.9em;
+            }
+            
+            .empty-state h3 {
+                font-size: 1.2em;
+                margin-bottom: 10px;
+            }
+        }
+
+        /* Très petit mobile */
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.5em;
+            }
+            
+            .header p {
+                font-size: 0.8em;
+            }
+            
+            .tab {
+                padding: 8px 10px;
+                font-size: 0.8em;
+                min-width: 80px;
+            }
+            
+            .tab-name {
+                max-width: 60px;
+            }
+            
+            .add-tab-btn {
+                padding: 8px 12px;
+                font-size: 0.8em;
+            }
+            
+            .column {
+                margin: 0 5px;
+                padding: 12px;
+            }
+            
+            .column-title {
+                font-size: 1em;
+            }
+            
+            .todo-item {
+                padding: 10px;
+            }
+            
+            .todo-content {
+                font-size: 0.9em;
+            }
+            
+            .add-column-btn, .add-todo-btn {
+                padding: 10px 16px;
+                font-size: 0.85em;
+            }
+            
+            /* Modals sur mobile */
+            .modal-content {
+                width: 95%;
+                max-width: none;
+                margin: 20px auto;
+                padding: 20px 15px;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+            
+            .modal-content h2 {
+                font-size: 1.3em;
+                margin-bottom: 15px;
+            }
+            
+            .form-group {
+                margin-bottom: 15px;
+            }
+            
+            .form-group label {
+                font-size: 0.9em;
+                margin-bottom: 6px;
+            }
+            
+            .form-group input, 
+            .form-group textarea {
+                padding: 12px;
+                font-size: 16px; /* Empêche le zoom sur iOS */
+                border-radius: 8px;
+            }
+            
+            .form-group textarea {
+                min-height: 80px;
+                resize: vertical;
+            }
+            
+            .preset-colors {
+                gap: 6px;
+                margin-top: 8px;
+            }
+            
+            .color-option {
+                width: 35px;
+                height: 35px;
+                touch-action: manipulation;
+            }
+            
+            .btn-primary, .btn-secondary {
+                padding: 12px 20px;
+                font-size: 0.9em;
+                border-radius: 8px;
+                margin-right: 8px;
+                margin-bottom: 8px;
+                min-width: 80px;
+                touch-action: manipulation;
+            }
+            
+            .close {
+                font-size: 24px;
+                padding: 5px;
+                top: 10px;
+                right: 15px;
+                position: absolute;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✨ Todo List Avancée</h1>
+            <p>Organisez vos tâches avec des onglets et colonnes personnalisables</p>
+        </div>
+
+        <div class="tabs-container" id="tabsContainer">
+            <!-- Les onglets seront générés ici -->
+            <button class="add-tab-btn" onclick="openTabModal()">+ Nouvel Onglet</button>
+        </div>
+
+        <div class="tab-content" id="tabContent">
+            <div class="empty-state">
+                <h3>Créez votre premier onglet pour commencer !</h3>
+                <p>Cliquez sur "+ Nouvel Onglet" pour démarrer votre organisation.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour créer/éditer un onglet -->
+    <div id="tabModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeTabModal()">&times;</span>
+            <h2 id="tabModalTitle">Créer un Onglet</h2>
+            <div class="form-group">
+                <label for="tabName">Nom de l'onglet :</label>
+                <input type="text" id="tabName" placeholder="Ex: Cuisine, Travail, Personnel...">
+            </div>
+            <div class="form-group">
+                <label for="tabColor">Couleur de fond de l'onglet :</label>
+                <input type="color" id="tabColor" value="#ffffff">
+                <div class="preset-colors">
+                    <div class="color-option" style="background-color: #ffcdd2" onclick="selectPresetColor('#ffcdd2', 'tab')"></div>
+                    <div class="color-option" style="background-color: #f8bbd9" onclick="selectPresetColor('#f8bbd9', 'tab')"></div>
+                    <div class="color-option" style="background-color: #e1bee7" onclick="selectPresetColor('#e1bee7', 'tab')"></div>
+                    <div class="color-option" style="background-color: #c5cae9" onclick="selectPresetColor('#c5cae9', 'tab')"></div>
+                    <div class="color-option" style="background-color: #bbdefb" onclick="selectPresetColor('#bbdefb', 'tab')"></div>
+                    <div class="color-option" style="background-color: #b2dfdb" onclick="selectPresetColor('#b2dfdb', 'tab')"></div>
+                    <div class="color-option" style="background-color: #c8e6c9" onclick="selectPresetColor('#c8e6c9', 'tab')"></div>
+                    <div class="color-option" style="background-color: #dcedc8" onclick="selectPresetColor('#dcedc8', 'tab')"></div>
+                    <div class="color-option" style="background-color: #f0f4c3" onclick="selectPresetColor('#f0f4c3', 'tab')"></div>
+                    <div class="color-option" style="background-color: #fff9c4" onclick="selectPresetColor('#fff9c4', 'tab')"></div>
+                    <div class="color-option" style="background-color: #ffecb3" onclick="selectPresetColor('#ffecb3', 'tab')"></div>
+                    <div class="color-option" style="background-color: #ffe0b2" onclick="selectPresetColor('#ffe0b2', 'tab')"></div>
+                </div>
+            </div>
+            <button class="btn-primary" onclick="saveTab()">Créer</button>
+            <button class="btn-secondary" onclick="closeTabModal()">Annuler</button>
+        </div>
+    </div>
+
+    <!-- Modal pour créer/éditer une colonne -->
+    <div id="columnModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeColumnModal()">&times;</span>
+            <h2 id="columnModalTitle">Créer une Colonne</h2>
+            <div class="form-group">
+                <label for="columnName">Nom de la colonne :</label>
+                <input type="text" id="columnName" placeholder="Ex: À faire, En cours, Terminé...">
+            </div>
+            <div class="form-group">
+                <label for="columnColor">Couleur de la colonne :</label>
+                <input type="color" id="columnColor" value="#f8f9fa">
+                <div class="preset-colors">
+                    <div class="color-option" style="background-color: #ffcdd2" onclick="selectPresetColor('#ffcdd2', 'column')"></div>
+                    <div class="color-option" style="background-color: #f8bbd9" onclick="selectPresetColor('#f8bbd9', 'column')"></div>
+                    <div class="color-option" style="background-color: #e1bee7" onclick="selectPresetColor('#e1bee7', 'column')"></div>
+                    <div class="color-option" style="background-color: #c5cae9" onclick="selectPresetColor('#c5cae9', 'column')"></div>
+                    <div class="color-option" style="background-color: #bbdefb" onclick="selectPresetColor('#bbdefb', 'column')"></div>
+                    <div class="color-option" style="background-color: #b2dfdb" onclick="selectPresetColor('#b2dfdb', 'column')"></div>
+                    <div class="color-option" style="background-color: #c8e6c9" onclick="selectPresetColor('#c8e6c9', 'column')"></div>
+                    <div class="color-option" style="background-color: #dcedc8" onclick="selectPresetColor('#dcedc8', 'column')"></div>
+                    <div class="color-option" style="background-color: #f0f4c3" onclick="selectPresetColor('#f0f4c3', 'column')"></div>
+                    <div class="color-option" style="background-color: #fff9c4" onclick="selectPresetColor('#fff9c4', 'column')"></div>
+                    <div class="color-option" style="background-color: #ffecb3" onclick="selectPresetColor('#ffecb3', 'column')"></div>
+                    <div class="color-option" style="background-color: #ffe0b2" onclick="selectPresetColor('#ffe0b2', 'column')"></div>
+                </div>
+            </div>
+            <button class="btn-primary" onclick="saveColumn()">Créer</button>
+            <button class="btn-secondary" onclick="closeColumnModal()">Annuler</button>
+        </div>
+    </div>
+
+    <!-- Modal pour créer/éditer un todo -->
+    <div id="todoModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeTodoModal()">&times;</span>
+            <h2 id="todoModalTitle">Créer un Todo</h2>
+            <div class="form-group">
+                <label for="todoText">Texte du todo :</label>
+                <textarea id="todoText" rows="3" placeholder="Décrivez votre tâche..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="todoColor">Couleur du todo :</label>
+                <input type="color" id="todoColor" value="#ffffff">
+                <div class="preset-colors">
+                    <div class="color-option" style="background-color: #ffffff" onclick="selectPresetColor('#ffffff', 'todo')"></div>
+                    <div class="color-option" style="background-color: #fff3e0" onclick="selectPresetColor('#fff3e0', 'todo')"></div>
+                    <div class="color-option" style="background-color: #f3e5f5" onclick="selectPresetColor('#f3e5f5', 'todo')"></div>
+                    <div class="color-option" style="background-color: #e8f5e8" onclick="selectPresetColor('#e8f5e8', 'todo')"></div>
+                    <div class="color-option" style="background-color: #e3f2fd" onclick="selectPresetColor('#e3f2fd', 'todo')"></div>
+                    <div class="color-option" style="background-color: #fff8e1" onclick="selectPresetColor('#fff8e1', 'todo')"></div>
+                    <div class="color-option" style="background-color: #fce4ec" onclick="selectPresetColor('#fce4ec', 'todo')"></div>
+                    <div class="color-option" style="background-color: #f1f8e9" onclick="selectPresetColor('#f1f8e9', 'todo')"></div>
+                    <div class="color-option" style="background-color: #ff6b6b" onclick="selectPresetColor('#ff6b6b', 'todo')"></div>
+                    <div class="color-option" style="background-color: #ff8cc8" onclick="selectPresetColor('#ff8cc8', 'todo')"></div>
+                    <div class="color-option" style="background-color: #a8e6cf" onclick="selectPresetColor('#a8e6cf', 'todo')"></div>
+                    <div class="color-option" style="background-color: #74b9ff" onclick="selectPresetColor('#74b9ff', 'todo')"></div>
+                </div>
+            </div>
+            <button class="btn-primary" onclick="saveTodo()">Créer</button>
+            <button class="btn-secondary" onclick="closeTodoModal()">Annuler</button>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let tabs = [];
+        let currentTabId = null;
+        let editingTabId = null;
+        let editingColumnId = null;
+        let editingTodoId = null;
+        let draggedTodo = null;
+        let draggedTab = null;
+        let dropIndicator = null;
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            if (tabs.length === 0) {
+                // Créer un onglet par défaut si aucun n'existe
+                createDefaultTab();
+            }
+            renderTabs();
+            if (tabs.length > 0) {
+                switchTab(tabs[0].id);
+            }
+        });
+
+        function createDefaultTab() {
+            const defaultTab = {
+                id: generateId(),
+                name: 'Mon Premier Onglet',
+                backgroundColor: '#ffffff',
+                columns: []
+            };
+            tabs.push(defaultTab);
+            saveData();
+        }
+
+        function generateId() {
+            return 'id_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // Gestion des onglets
+        function openTabModal(tabId = null) {
+            editingTabId = tabId;
+            const modal = document.getElementById('tabModal');
+            const title = document.getElementById('tabModalTitle');
+            const nameInput = document.getElementById('tabName');
+            const colorInput = document.getElementById('tabColor');
+
+            if (tabId) {
+                const tab = tabs.find(t => t.id === tabId);
+                title.textContent = 'Éditer l\'Onglet';
+                nameInput.value = tab.name;
+                colorInput.value = tab.backgroundColor || '#ffffff';
+            } else {
+                title.textContent = 'Créer un Onglet';
+                nameInput.value = '';
+                colorInput.value = '#ffffff';
+            }
+
+            modal.style.display = 'block';
+            nameInput.focus();
+        }
+
+        function closeTabModal() {
+            document.getElementById('tabModal').style.display = 'none';
+            editingTabId = null;
+        }
+
+        function saveTab() {
+            const name = document.getElementById('tabName').value.trim();
+            const backgroundColor = document.getElementById('tabColor').value;
+            
+            if (!name) {
+                alert('Veuillez entrer un nom pour l\'onglet');
+                return;
+            }
+
+            if (editingTabId) {
+                // Édition
+                const tab = tabs.find(t => t.id === editingTabId);
+                tab.name = name;
+                tab.backgroundColor = backgroundColor;
+            } else {
+                // Création
+                const newTab = {
+                    id: generateId(),
+                    name: name,
+                    backgroundColor: backgroundColor,
+                    columns: []
+                };
+                tabs.push(newTab);
+                currentTabId = newTab.id;
+            }
+
+            saveData();
+            renderTabs();
+            if (currentTabId) {
+                switchTab(currentTabId);
+            }
+            closeTabModal();
+        }
+
+        function deleteTab(tabId) {
+            if (tabs.length <= 1) {
+                alert('Vous devez avoir au moins un onglet');
+                return;
+            }
+
+            if (confirm('Êtes-vous sûr de vouloir supprimer cet onglet ?')) {
+                tabs = tabs.filter(t => t.id !== tabId);
+                if (currentTabId === tabId) {
+                    currentTabId = tabs[0].id;
+                }
+                saveData();
+                renderTabs();
+                switchTab(currentTabId);
+            }
+        }
+
+        function switchTab(tabId) {
+            currentTabId = tabId;
+            renderTabs();
+            renderColumns();
+        }
+
+        function renderTabs() {
+            const container = document.getElementById('tabsContainer');
+            const addButton = container.querySelector('.add-tab-btn');
+            
+            // Supprimer tous les onglets existants
+            container.querySelectorAll('.tab').forEach(tab => tab.remove());
+
+            tabs.forEach(tab => {
+                const tabElement = document.createElement('div');
+                tabElement.className = `tab ${tab.id === currentTabId ? 'active' : ''}`;
+                tabElement.style.backgroundColor = tab.backgroundColor || '#ffffff';
+                tabElement.draggable = true;
+                tabElement.innerHTML = `
+                    <span class="tab-name" onclick="switchTab('${tab.id}')">${tab.name}</span>
+                    <span onclick="openTabModal('${tab.id}')" title="Éditer l'onglet" style="cursor: pointer; opacity: 0.7;">✏️</span>
+                    <span class="tab-close" onclick="event.stopPropagation(); deleteTab('${tab.id}')" title="Supprimer l'onglet">×</span>
+                `;
+                
+                // Événements de drag pour les onglets
+                tabElement.addEventListener('dragstart', (e) => dragTabStart(e, tab.id));
+                tabElement.addEventListener('dragend', dragTabEnd);
+                tabElement.addEventListener('dragover', allowTabDrop);
+                tabElement.addEventListener('drop', (e) => dropTab(e, tab.id));
+                
+                container.insertBefore(tabElement, addButton);
+            });
+        }
+
+        // Fonctions de drag and drop pour les onglets
+        function dragTabStart(event, tabId) {
+            draggedTab = tabId;
+            event.target.classList.add('dragging');
+        }
+
+        function dragTabEnd(event) {
+            event.target.classList.remove('dragging');
+            draggedTab = null;
+        }
+
+        function allowTabDrop(event) {
+            event.preventDefault();
+        }
+
+        function dropTab(event, targetTabId) {
+            event.preventDefault();
+            
+            if (!draggedTab || draggedTab === targetTabId) return;
+
+            const draggedIndex = tabs.findIndex(t => t.id === draggedTab);
+            const targetIndex = tabs.findIndex(t => t.id === targetTabId);
+
+            if (draggedIndex !== -1 && targetIndex !== -1) {
+                // Réorganiser les onglets
+                const draggedTabObj = tabs.splice(draggedIndex, 1)[0];
+                tabs.splice(targetIndex, 0, draggedTabObj);
+                
+                saveData();
+                renderTabs();
+            }
+        }
+        // Gestion des colonnes
+        function openColumnModal(columnId = null) {
+            editingColumnId = columnId;
+            const modal = document.getElementById('columnModal');
+            const title = document.getElementById('columnModalTitle');
+            const nameInput = document.getElementById('columnName');
+            const colorInput = document.getElementById('columnColor');
+
+            if (columnId) {
+                const currentTab = tabs.find(t => t.id === currentTabId);
+                const column = currentTab.columns.find(c => c.id === columnId);
+                title.textContent = 'Éditer la Colonne';
+                nameInput.value = column.name;
+                colorInput.value = column.color;
+            } else {
+                title.textContent = 'Créer une Colonne';
+                nameInput.value = '';
+                colorInput.value = '#f8f9fa';
+            }
+
+            modal.style.display = 'block';
+            nameInput.focus();
+        }
+
+        function closeColumnModal() {
+            document.getElementById('columnModal').style.display = 'none';
+            editingColumnId = null;
+        }
+
+        function saveColumn() {
+            const name = document.getElementById('columnName').value.trim();
+            const color = document.getElementById('columnColor').value;
+
+            if (!name) {
+                alert('Veuillez entrer un nom pour la colonne');
+                return;
+            }
+
+            const currentTab = tabs.find(t => t.id === currentTabId);
+
+            if (editingColumnId) {
+                // Édition
+                const column = currentTab.columns.find(c => c.id === editingColumnId);
+                column.name = name;
+                column.color = color;
+            } else {
+                // Création
+                const newColumn = {
+                    id: generateId(),
+                    name: name,
+                    color: color,
+                    locked: false,
+                    todos: []
+                };
+                currentTab.columns.push(newColumn);
+            }
+
+            saveData();
+            renderColumns();
+            closeColumnModal();
+        }
+
+        function deleteColumn(columnId) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette colonne ?')) {
+                const currentTab = tabs.find(t => t.id === currentTabId);
+                currentTab.columns = currentTab.columns.filter(c => c.id !== columnId);
+                saveData();
+                renderColumns();
+            }
+        }
+
+        function lockColumn(columnId) {
+            const currentTab = tabs.find(t => t.id === currentTabId);
+            const column = currentTab.columns.find(c => c.id === columnId);
+            column.locked = !column.locked;
+            saveData();
+            renderColumns();
+        }
+
+        function resetColumn(columnId) {
+            if (confirm('Êtes-vous sûr de vouloir vider cette colonne ?')) {
+                const currentTab = tabs.find(t => t.id === currentTabId);
+                const column = currentTab.columns.find(c => c.id === columnId);
+                column.todos = [];
+                saveData();
+                renderColumns();
+            }
+        }
+
+        function renderColumns() {
+            const tabContent = document.getElementById('tabContent');
+            const currentTab = tabs.find(t => t.id === currentTabId);
+
+            if (!currentTab) {
+                tabContent.innerHTML = '<div class="empty-state"><h3>Aucun onglet sélectionné</h3></div>';
+                return;
+            }
+
+            // Appliquer la couleur de fond de l'onglet
+            tabContent.style.backgroundColor = currentTab.backgroundColor || '#ffffff';
+
+            if (currentTab.columns.length === 0) {
+                tabContent.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Aucune colonne dans cet onglet</h3>
+                        <p>Créez votre première colonne pour organiser vos tâches.</p>
+                        <button class="add-column-btn" onclick="openColumnModal()">+ Ajouter une Colonne</button>
+                    </div>
+                `;
+                return;
+            }
+
+            const columnsHtml = currentTab.columns.map(column => `
+                <div class="column" style="background-color: ${column.color}" ondrop="drop(event, '${column.id}')" ondragover="allowDrop(event)">
+                    <div class="column-header" style="background-color: ${column.color}">
+                        <div class="column-title">${column.name}</div>
+                        <div class="column-actions">
+                            ${column.locked ? '<span title="Colonne verrouillée">🔒</span>' : ''}
+                            <button class="column-btn" onclick="openColumnModal('${column.id}')" title="Éditer">✏️</button>
+                            <button class="column-btn" onclick="lockColumn('${column.id}')" title="${column.locked ? 'Déverrouiller' : 'Verrouiller'}">${column.locked ? '🔓' : '🔒'}</button>
+                            <button class="column-btn" onclick="resetColumn('${column.id}')" title="Vider la colonne">🗑️</button>
+                            <button class="column-btn" onclick="event.stopPropagation(); deleteColumn('${column.id}')" title="Supprimer">❌</button>
+                        </div>
+                    </div>
+                    <div class="todos-container" id="todos-${column.id}">
+                        ${renderTodos(column.todos, column.id)}
+                    </div>
+                    <button class="add-todo-btn" onclick="openTodoModal('${column.id}')" ${column.locked ? 'disabled' : ''}>+ Ajouter un Todo</button>
+                </div>
+            `).join('');
+
+            tabContent.innerHTML = `
+                <div class="columns-container">
+                    ${columnsHtml}
+                </div>
+                <button class="add-column-btn" onclick="openColumnModal()">+ Ajouter une Colonne</button>
+            `;
+        }
+
+        // Gestion des todos
+        function openTodoModal(columnId, todoId = null) {
+            editingTodoId = todoId;
+            const modal = document.getElementById('todoModal');
+            const title = document.getElementById('todoModalTitle');
+            const textInput = document.getElementById('todoText');
+            const colorInput = document.getElementById('todoColor');
+
+            if (todoId) {
+                const currentTab = tabs.find(t => t.id === currentTabId);
+                const column = currentTab.columns.find(c => c.id === columnId);
+                const todo = column.todos.find(t => t.id === todoId);
+                title.textContent = 'Éditer le Todo';
+                textInput.value = todo.text;
+                colorInput.value = todo.color || '#ffffff';
+            } else {
+                title.textContent = 'Créer un Todo';
+                textInput.value = '';
+                colorInput.value = '#ffffff';
+            }
+
+            modal.style.display = 'block';
+            modal.setAttribute('data-column-id', columnId);
+            textInput.focus();
+        }
+
+        function closeTodoModal() {
+            document.getElementById('todoModal').style.display = 'none';
+            editingTodoId = null;
+        }
+
+        function saveTodo() {
+            const text = document.getElementById('todoText').value.trim();
+            const color = document.getElementById('todoColor').value;
+
+            if (!text) {
+                alert('Veuillez entrer un texte pour le todo');
+                return;
+            }
+
+            const currentTab = tabs.find(t => t.id === currentTabId);
+
+            if (editingTodoId) {
+                // Édition
+                let todoFound = false;
+                currentTab.columns.forEach(column => {
+                    const todo = column.todos.find(t => t.id === editingTodoId);
+                    if (todo) {
+                        todo.text = text;
+                        todo.color = color;
+                        todoFound = true;
+                    }
+                });
+            } else {
+                // Création - trouver la colonne cible
+                const targetColumnId = document.getElementById('todoModal').getAttribute('data-column-id');
+                const column = currentTab.columns.find(c => c.id === targetColumnId);
+                if (column && !column.locked) {
+                    const newTodo = {
+                        id: generateId(),
+                        text: text,
+                        color: color,
+                        completed: false,
+                        locked: false
+                    };
+                    column.todos.push(newTodo);
+                }
+            }
+
+            saveData();
+            renderColumns();
+            closeTodoModal();
+        }
+
+        function deleteTodo(todoId) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce todo ?')) {
+                const currentTab = tabs.find(t => t.id === currentTabId);
+                currentTab.columns.forEach(column => {
+                    column.todos = column.todos.filter(t => t.id !== todoId);
+                });
+                saveData();
+                renderColumns();
+            }
+        }
+
+        function toggleTodoComplete(todoId) {
+            const currentTab = tabs.find(t => t.id === currentTabId);
+            currentTab.columns.forEach(column => {
+                const todo = column.todos.find(t => t.id === todoId);
+                if (todo) {
+                    todo.completed = !todo.completed;
+                }
+            });
+            saveData();
+            renderColumns();
+        }
+
+        function lockTodo(todoId) {
+            const currentTab = tabs.find(t => t.id === currentTabId);
+            currentTab.columns.forEach(column => {
+                const todo = column.todos.find(t => t.id === todoId);
+                if (todo) {
+                    todo.locked = !todo.locked;
+                }
+            });
+            saveData();
+            renderColumns();
+        }
+
+        function cloneTodo(todoId) {
+            const currentTab = tabs.find(t => t.id === currentTabId);
+            currentTab.columns.forEach(column => {
+                const todo = column.todos.find(t => t.id === todoId);
+                if (todo) {
+                    const clonedTodo = {
+                        id: generateId(),
+                        text: todo.text + ' (copie)',
+                        color: todo.color,
+                        completed: false,
+                        locked: false
+                    };
+                    column.todos.push(clonedTodo);
+                }
+            });
+            saveData();
+            renderColumns();
+        }
+
+        function renderTodos(todos, columnId) {
+            if (todos.length === 0) {
+                return '<div class="empty-state">Aucun todo dans cette colonne</div>';
+            }
+
+            return todos.map((todo, index) => `
+                <div class="drop-indicator" data-index="${index}"></div>
+                <div class="todo-item ${todo.completed ? 'completed' : ''} ${todo.locked ? 'locked' : ''}" 
+                     draggable="${!todo.locked}" 
+                     ondragstart="dragStart(event, '${todo.id}', '${columnId}', ${index})"
+                     ondragend="dragEnd(event)"
+                     ondragover="allowTodoDrop(event, ${index})"
+                     data-todo-id="${todo.id}"
+                     data-index="${index}"
+                     style="background-color: ${todo.color || '#ffffff'}">
+                    <div class="todo-header">
+                        <div class="todo-content">${todo.text}</div>
+                        <div class="todo-actions">
+                            ${todo.locked ? '<span title="Todo verrouillé">🔒</span>' : ''}
+                            <button class="todo-btn" onclick="toggleTodoComplete('${todo.id}')" title="${todo.completed ? 'Marquer comme à faire' : 'Marquer comme fait'}">${todo.completed ? '↩️' : '✅'}</button>
+                            <button class="todo-btn" onclick="openTodoModal('${columnId}', '${todo.id}')" title="Éditer">✏️</button>
+                            <button class="todo-btn" onclick="lockTodo('${todo.id}')" title="${todo.locked ? 'Déverrouiller' : 'Verrouiller'}">${todo.locked ? '🔓' : '🔒'}</button>
+                            <button class="todo-btn" onclick="cloneTodo('${todo.id}')" title="Cloner">📋</button>
+                            <button class="todo-btn" onclick="event.stopPropagation(); deleteTodo('${todo.id}')" title="Supprimer">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('') + '<div class="drop-indicator" data-index="' + todos.length + '"></div>';
+        }
+
+        // Gestion du drag and drop
+        function dragStart(event, todoId) {
+            draggedTodo = todoId;
+            event.target.classList.add('dragging');
+        }
+
+        function dragEnd(event) {
+            event.target.classList.remove('dragging');
+            draggedTodo = null;
+            // Cacher tous les indicateurs de drop
+            document.querySelectorAll('.drop-indicator').forEach(indicator => {
+                indicator.classList.remove('active');
+            });
+        }
+
+        function allowDrop(event) {
+            event.preventDefault();
+            const column = event.currentTarget;
+            if (!column.classList.contains('drag-over')) {
+                column.classList.add('drag-over');
+            }
+        }
+
+        function allowTodoDrop(event, index) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // Cacher tous les autres indicateurs
+            document.querySelectorAll('.drop-indicator').forEach(indicator => {
+                indicator.classList.remove('active');
+            });
+            
+            // Montrer l'indicateur pour cette position
+            const todoContainer = event.currentTarget.parentElement;
+            const indicators = todoContainer.querySelectorAll('.drop-indicator');
+            
+            // Calculer la position relative de la souris dans l'élément
+            const rect = event.currentTarget.getBoundingClientRect();
+            const mouseY = event.clientY - rect.top;
+            const halfHeight = rect.height / 2;
+            
+            // Déterminer si on insère avant ou après cet élément
+            if (mouseY < halfHeight) {
+                // Insérer avant - utiliser l'indicateur à cet index
+                if (indicators[index]) {
+                    indicators[index].classList.add('active');
+                }
+            } else {
+                // Insérer après - utiliser l'indicateur à index + 1
+                if (indicators[index + 1]) {
+                    indicators[index + 1].classList.add('active');
+                }
+            }
+        }
+
+        function drop(event, targetColumnId) {
+            event.preventDefault();
+            const column = event.currentTarget;
+            column.classList.remove('drag-over');
+
+            if (!draggedTodo) return;
+
+            const currentTab = tabs.find(t => t.id === currentTabId);
+            const targetColumn = currentTab.columns.find(c => c.id === targetColumnId);
+            
+            if (targetColumn.locked) {
+                alert('Cette colonne est verrouillée');
+                return;
+            }
+
+            // Trouver l'indicateur actif pour déterminer la position d'insertion
+            const activeIndicator = document.querySelector('.drop-indicator.active');
+            let insertIndex = targetColumn.todos.length; // Par défaut, insérer à la fin
+
+            if (activeIndicator) {
+                insertIndex = parseInt(activeIndicator.dataset.index);
+            }
+
+            // Trouver et supprimer le todo de sa colonne actuelle
+            let todoToMove = null;
+            let sourceColumnId = null;
+            let originalIndex = -1;
+
+            currentTab.columns.forEach(column => {
+                const todoIndex = column.todos.findIndex(t => t.id === draggedTodo);
+                if (todoIndex !== -1) {
+                    todoToMove = column.todos[todoIndex];
+                    sourceColumnId = column.id;
+                    originalIndex = todoIndex;
+                    if (!todoToMove.locked) {
+                        column.todos.splice(todoIndex, 1);
+                    }
+                }
+            });
+
+            // Ajouter le todo à la nouvelle position si pas verrouillé
+            if (todoToMove && !todoToMove.locked) {
+                // Si on déplace dans la même colonne et que l'index d'insertion est après la position originale,
+                // il faut ajuster l'index car on a supprimé un élément avant
+                if (sourceColumnId === targetColumnId && insertIndex > originalIndex) {
+                    insertIndex--;
+                }
+                
+                // Insérer à la position désirée
+                targetColumn.todos.splice(insertIndex, 0, todoToMove);
+                saveData();
+                renderColumns();
+            } else if (todoToMove && todoToMove.locked) {
+                alert('Ce todo est verrouillé et ne peut pas être déplacé');
+            }
+
+            // Cacher tous les indicateurs
+            document.querySelectorAll('.drop-indicator').forEach(indicator => {
+                indicator.classList.remove('active');
+            });
+        }
+
+        // Gestion des couleurs prédéfinies
+        function selectPresetColor(color, type) {
+            if (type === 'column') {
+                document.getElementById('columnColor').value = color;
+            } else if (type === 'todo') {
+                document.getElementById('todoColor').value = color;
+            } else if (type === 'tab') {
+                document.getElementById('tabColor').value = color;
+            }
+            
+            // Mettre à jour la sélection visuelle
+            const container = event.target.parentElement;
+            container.querySelectorAll('.color-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+        }
+
+        // Sauvegarde et chargement des données
+        function saveData() {
+            const data = {
+                tabs: tabs,
+                currentTabId: currentTabId
+            };
+            // Simulation de sauvegarde en localStorage (remplacé par stockage en mémoire)
+            window.appData = data;
+        }
+
+        function loadData() {
+            // Simulation de chargement depuis localStorage (remplacé par stockage en mémoire)
+            if (window.appData) {
+                tabs = window.appData.tabs || [];
+                currentTabId = window.appData.currentTabId;
+            }
+        }
+
+        // Gestion des événements de drag over pour les colonnes
+        document.addEventListener('dragover', function(event) {
+            const columns = document.querySelectorAll('.column');
+            columns.forEach(column => {
+                if (!column.contains(event.target)) {
+                    column.classList.remove('drag-over');
+                }
+            });
+        });
+
+        // Modifier openTodoModal pour stocker l'ID de la colonne
+        const originalOpenTodoModal = openTodoModal;
+        openTodoModal = function(columnId, todoId = null) {
+            const modal = document.getElementById('todoModal');
+            modal.setAttribute('data-column-id', columnId);
+            originalOpenTodoModal(columnId, todoId);
+        };
+
+        // Gestion des événements clavier
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeTabModal();
+                closeColumnModal();
+                closeTodoModal();
+            }
+        });
+
+        // Gestion du clic en dehors des modales
+        window.addEventListener('click', function(event) {
+            const modals = ['tabModal', 'columnModal', 'todoModal'];
+            modals.forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        });
+
+        // Gestion responsive pour mobile
+        function isMobile() {
+            return window.innerWidth <= 768;
+        }
+
+        // Améliorations pour les interactions tactiles
+        if ('ontouchstart' in window) {
+            // Empêcher le zoom double-tap sur les boutons
+            document.addEventListener('touchstart', function() {}, {passive: true});
+            
+            // Améliorer le feedback tactile sur tous les éléments interactifs
+            const interactiveElements = '.tab, .column-btn, .todo-btn, .add-tab-btn, .add-column-btn, .add-todo-btn, .btn-primary, .btn-secondary, .color-option, .close';
+            
+            document.addEventListener('touchstart', function(e) {
+                if (e.target.matches(interactiveElements)) {
+                    e.target.style.transition = 'transform 0.1s ease';
+                }
+            }, {passive: true});
+            
+            document.addEventListener('touchend', function(e) {
+                if (e.target.matches(interactiveElements)) {
+                    setTimeout(() => {
+                        e.target.style.transition = '';
+                    }, 150);
+                }
+            }, {passive: true});
+        }
+
+        // Gestion du scroll horizontal pour les onglets sur mobile
+        let isScrolling = false;
+        const tabsContainer = document.getElementById('tabsContainer');
+        
+        if (tabsContainer) {
+            tabsContainer.addEventListener('scroll', function() {
+                isScrolling = true;
+                setTimeout(() => { isScrolling = false; }, 150);
+            }, {passive: true});
+        }
+
+        // Améliorer l'ouverture des modals sur mobile
+        const originalOpenModal = function(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'block';
+                // Empêcher le scroll du body sur mobile quand le modal est ouvert
+                if (isMobile()) {
+                    document.body.style.overflow = 'hidden';
+                }
+                
+                // Focus automatique sur le premier input
+                setTimeout(() => {
+                    const firstInput = modal.querySelector('input, textarea');
+                    if (firstInput && !isMobile()) { // Pas de focus auto sur mobile pour éviter le zoom
+                        firstInput.focus();
+                    }
+                }, 100);
+            }
+        };
+
+        const originalCloseModal = function(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'none';
+                // Restaurer le scroll du body
+                document.body.style.overflow = '';
+            }
+        };
+
+        // Override des fonctions de modal existantes
+        const originalCloseTabModal = closeTabModal;
+        closeTabModal = function() {
+            originalCloseTabModal();
+            document.body.style.overflow = '';
+        };
+
+        const originalCloseColumnModal = closeColumnModal;
+        closeColumnModal = function() {
+            originalCloseColumnModal();
+            document.body.style.overflow = '';
+        };
+
+        const originalCloseTodoModal = closeTodoModal;
+        closeTodoModal = function() {
+            originalCloseTodoModal();
+            document.body.style.overflow = '';
+        };
+
+        // Gestion améliorée du drag and drop sur mobile
+        let touchStartY = 0;
+        let touchStartX = 0;
+        let isDragging = false;
+
+        document.addEventListener('touchstart', function(e) {
+            if (e.target.closest('.todo-item[draggable="true"]') && !e.target.closest('.todo-btn')) {
+                touchStartY = e.touches[0].clientY;
+                touchStartX = e.touches[0].clientX;
+                isDragging = false;
+            }
+        }, {passive: true});
+
+        document.addEventListener('touchmove', function(e) {
+            if (touchStartY && Math.abs(e.touches[0].clientY - touchStartY) > 10) {
+                isDragging = true;
+            }
+        }, {passive: true});
+
+        document.addEventListener('touchend', function(e) {
+            touchStartY = 0;
+            touchStartX = 0;
+            isDragging = false;
+        }, {passive: true});
+
+        // Ajuster la taille des éléments selon l'orientation
+        window.addEventListener('orientationchange', function() {
+            setTimeout(() => {
+                renderTabs();
+                renderColumns();
+            }, 300);
+        });
+    </script>
+</body>
+</html>

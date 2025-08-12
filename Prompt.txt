@@ -1,0 +1,27 @@
+
+je veux faire un site web pour faire une todolist
+il me faut : 
+
+
+pouvoir créer des "onglets" et les nommer 
+dans chaques onglets : 
+créer une ou plusieurs colonne et lui attribuer une couleur/vérouiller la colonne/éditer/supprimer 
+pouvoir créer un "todo"  lui attribué une couleurs ( avec la roue de selection de couleurs ) ET des couleurs préselectionné ( dans les tons pastel ) avec un btn "palette"
+pouvoir vérouiller le "todo" 
+pouvoir supprimer le "todo"
+pouvoir éditer le "todo" 
+pouvoir drag and drop le todo dans une autre colonne 
+pouvoir cloner le todo
+pouvoir passer de status " a faire " à " fait "
+
+chaques "todo" peut être drag and drop dans une colonne 
+le but étant de pouvoir créer un onglet ( ex: "cuisine", et pouvoir faire plusieurs colonne dans l'onglet " à cuire " " sauce " " à découper " ) avec dans chaque colonne des TODO 
+il est possible d'avoir des couleurs différentes entre les todo et les colonnes 
+il est possible de "reset" une colonne entière pour pouvoir la refaire le lendemain si besoin 
+
+
+
+
+
+une connexion sécurisée avec email et mot de passe respectant les règles rgpd et normes européennes
+une fois connectée :
