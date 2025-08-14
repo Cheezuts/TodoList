@@ -1,0 +1,771 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.header {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    padding: 20px;
+    text-align: center;
+    color: white;
+}
+
+.header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.tabs-container {
+    display: flex;
+    background: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
+    overflow-x: auto;
+    align-items: center;
+    padding: 10px 20px;
+}
+
+.tab {
+    background: white;
+    border: 2px solid #dee2e6;
+    border-radius: 10px 10px 0 0;
+    padding: 12px 20px;
+    margin-right: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.tab.dragging {
+    opacity: 0.5;
+    transform: rotate(3deg);
+}
+
+.tab-name {
+    cursor: grab;
+    flex: 1;
+}
+
+.tab-name:active {
+    cursor: grabbing;
+}
+
+.tab.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #667eea;
+}
+
+.tab:hover:not(.active) {
+    background: #e9ecef;
+}
+
+.tab-close {
+    margin-left: 10px;
+    cursor: pointer;
+    opacity: 0.7;
+    font-weight: bold;
+}
+
+.tab-close:hover {
+    opacity: 1;
+    color: #ff4757;
+}
+
+.add-tab-btn {
+    background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.2s ease;
+    margin-left: 10px;
+}
+
+.add-tab-btn:hover {
+    transform: translateY(-2px);
+}
+
+.tab-content {
+    padding: 20px;
+    min-height: 500px;
+}
+
+.columns-container {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    padding-bottom: 20px;
+}
+
+.column {
+    min-width: 300px;
+    background: #f8f9fa;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    position: relative;
+    cursor: grab;
+    transition: all 0.3s ease;
+}
+
+.column:active {
+    cursor: grabbing;
+}
+
+.column.dragging {
+    opacity: 0.6;
+    transform: rotate(2deg) scale(1.02);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    z-index: 1000;
+}
+
+.column.drag-over {
+    transform: translateX(10px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.column-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.column-title {
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+.column-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.column-btn {
+    background: rgba(255,255,255,0.8);
+    border: none;
+    border-radius: 5px;
+    padding: 5px 8px;
+    cursor: pointer;
+    font-size: 0.8em;
+    transition: all 0.2s ease;
+}
+
+.column-btn:hover {
+    background: white;
+    transform: scale(1.1);
+}
+
+.todos-container {
+    min-height: 200px;
+}
+
+.todo-item {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    cursor: grab;
+    transition: all 0.3s ease;
+    position: relative;
+    border-left: 4px solid #007bff;
+}
+
+.todo-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+}
+
+.todo-item.dragging {
+    opacity: 0.5;
+    transform: rotate(5deg);
+}
+
+.todo-item.completed {
+    opacity: 0.7;
+    text-decoration: line-through;
+    background: #f8f9fa !important;
+    color: #6c757d;
+}
+
+.todo-item.completed .todo-content {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+.todo-item.locked {
+    border-right: 4px solid #ffd700;
+}
+
+.todo-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.todo-content {
+    flex: 1;
+    margin-right: 10px;
+}
+
+.todo-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.todo-btn {
+    background: transparent;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    padding: 5px 8px;
+    cursor: pointer;
+    font-size: 0.8em;
+    transition: all 0.2s ease;
+}
+
+.todo-btn:hover {
+    background: #e9ecef;
+}
+
+.add-column-btn, .add-todo-btn {
+    background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 15px 25px;
+    cursor: pointer;
+    font-weight: bold;
+    margin: 10px;
+    transition: all 0.3s ease;
+}
+
+.add-column-btn:hover, .add-todo-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 10% auto;
+    padding: 30px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    animation: modalSlide 0.3s ease-out;
+}
+
+@keyframes modalSlide {
+    from { transform: translateY(-50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: #ff4757;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #333;
+}
+
+.form-group input, .form-group textarea, .form-group select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.color-picker-container {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.preset-colors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.color-option {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.color-option:hover, .color-option.selected {
+    border-color: #333;
+    transform: scale(1.1);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 25px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    margin-right: 10px;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 25px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+.drop-indicator {
+    height: 2px;
+    background: #007bff;
+    margin: 5px 0;
+    border-radius: 1px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.drop-indicator.active {
+    opacity: 1;
+}
+
+.empty-state {
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+    padding: 40px;
+}
+
+/* Améliorations pour le touch */
+.tab, .column-btn, .todo-btn, .add-tab-btn, .add-column-btn, .add-todo-btn, .btn-primary, .btn-secondary {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.todo-item[draggable="true"] {
+    touch-action: none;
+    -webkit-touch-callout: none;
+}
+
+.color-option {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Effets hover adaptés pour mobile */
+@media (hover: hover) {
+    .tab:hover:not(.active), 
+    .column-btn:hover, 
+    .todo-btn:hover, 
+    .add-tab-btn:hover, 
+    .add-column-btn:hover, 
+    .add-todo-btn:hover {
+        transform: translateY(-2px);
+    }
+}
+
+/* Pour les appareils tactiles sans hover */
+@media (hover: none) {
+    .tab:active, 
+    .column-btn:active, 
+    .todo-btn:active, 
+    .add-tab-btn:active, 
+    .add-column-btn:active, 
+    .add-todo-btn:active {
+        transform: scale(0.95);
+        transition: transform 0.1s ease;
+    }
+    
+    .color-option:active {
+        transform: scale(0.9);
+        transition: transform 0.1s ease;
+    }
+}
+
+/* Tablette */
+@media (max-width: 1024px) {
+    .container {
+        margin: 10px;
+        border-radius: 15px;
+    }
+    
+    .header h1 {
+        font-size: 2.2em;
+    }
+    
+    .columns-container {
+        gap: 15px;
+        padding: 0 10px;
+    }
+    
+    .column {
+        min-width: 280px;
+    }
+    
+    .modal-content {
+        width: 95%;
+        max-width: 400px;
+        margin: 5% auto;
+        padding: 20px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    .container {
+        margin: 0;
+        border-radius: 10px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .header {
+        padding: 15px;
+        text-align: center;
+    }
+    
+    .header h1 {
+        font-size: 1.8em;
+        margin-bottom: 5px;
+    }
+    
+    .header p {
+        font-size: 0.9em;
+    }
+    
+    /* Onglets responsive */
+    .tabs-container {
+        padding: 8px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    
+    .tabs-container::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .tab {
+        padding: 10px 12px;
+        font-size: 0.85em;
+        min-width: 100px;
+        flex-shrink: 0;
+        margin-right: 8px;
+    }
+    
+    .tab-name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 80px;
+    }
+    
+    .add-tab-btn {
+        padding: 10px 15px;
+        font-size: 0.85em;
+        margin-left: 8px;
+        flex-shrink: 0;
+    }
+    
+    /* Colonnes en mode mobile */
+    .columns-container {
+        flex-direction: column;
+        gap: 15px;
+        padding: 0;
+    }
+    
+    .column {
+        min-width: auto;
+        margin: 0 10px;
+        padding: 15px;
+        cursor: grab;
+    }
+
+    .column:active {
+        cursor: grabbing;
+    }
+
+    .column.dragging {
+        opacity: 0.7;
+        transform: scale(0.98);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .column.drag-over {
+        transform: translateY(-5px);
+        margin-bottom: 20px;
+    }
+    
+    .column-header {
+        padding: 8px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .column-title {
+        font-size: 1.1em;
+        margin-bottom: 5px;
+        flex: 1;
+        min-width: 120px;
+    }
+    
+    .column-actions {
+        flex-wrap: wrap;
+        gap: 3px;
+    }
+    
+    .column-btn {
+        padding: 6px 8px;
+        font-size: 0.9em;
+        min-width: 30px;
+    }
+    
+    /* Todos en mode mobile */
+    .todo-item {
+        padding: 12px;
+        margin-bottom: 8px;
+    }
+    
+    .todo-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .todo-content {
+        font-size: 0.95em;
+        line-height: 1.4;
+        margin-right: 0;
+        word-wrap: break-word;
+    }
+    
+    .todo-actions {
+        align-self: flex-end;
+        gap: 3px;
+        flex-wrap: wrap;
+    }
+    
+    .todo-btn {
+        padding: 6px 8px;
+        font-size: 0.8em;
+        min-width: 30px;
+    }
+    
+    /* Boutons principaux */
+    .add-column-btn, .add-todo-btn {
+        padding: 12px 20px;
+        font-size: 0.9em;
+        margin: 8px;
+    }
+    
+    /* États vides */
+    .empty-state {
+        padding: 30px 20px;
+        font-size: 0.9em;
+    }
+    
+    .empty-state h3 {
+        font-size: 1.2em;
+        margin-bottom: 10px;
+    }
+}
+
+/* Très petit mobile */
+@media (max-width: 480px) {
+    .header h1 {
+        font-size: 1.5em;
+    }
+    
+    .header p {
+        font-size: 0.8em;
+    }
+    
+    .tab {
+        padding: 8px 10px;
+        font-size: 0.8em;
+        min-width: 80px;
+    }
+    
+    .tab-name {
+        max-width: 60px;
+    }
+    
+    .add-tab-btn {
+        padding: 8px 12px;
+        font-size: 0.8em;
+    }
+    
+    .column {
+        margin: 0 5px;
+        padding: 12px;
+    }
+    
+    .column-title {
+        font-size: 1em;
+    }
+    
+    .todo-item {
+        padding: 10px;
+    }
+    
+    .todo-content {
+        font-size: 0.9em;
+    }
+    
+    .add-column-btn, .add-todo-btn {
+        padding: 10px 16px;
+        font-size: 0.85em;
+    }
+    
+    /* Modals sur mobile */
+    .modal-content {
+        width: 95%;
+        max-width: none;
+        margin: 20px auto;
+        padding: 20px 15px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    .modal-content h2 {
+        font-size: 1.3em;
+        margin-bottom: 15px;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-group label {
+        font-size: 0.9em;
+        margin-bottom: 6px;
+    }
+    
+    .form-group input, 
+    .form-group textarea {
+        padding: 12px;
+        font-size: 16px; /* Empêche le zoom sur iOS */
+        border-radius: 8px;
+    }
+    
+    .form-group textarea {
+        min-height: 80px;
+        resize: vertical;
+    }
+    
+    .preset-colors {
+        gap: 6px;
+        margin-top: 8px;
+    }
+    
+    .color-option {
+        width: 35px;
+        height: 35px;
+        touch-action: manipulation;
+    }
+    
+    .btn-primary, .btn-secondary {
+        padding: 12px 20px;
+        font-size: 0.9em;
+        border-radius: 8px;
+        margin-right: 8px;
+        margin-bottom: 8px;
+        min-width: 80px;
+        touch-action: manipulation;
+    }
+    
+    .close {
+        font-size: 24px;
+        padding: 5px;
+        top: 10px;
+        right: 15px;
+        position: absolute;
+    }
+}
