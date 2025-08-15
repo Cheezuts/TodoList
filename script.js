@@ -695,22 +695,202 @@ function selectPresetColor(color, type) {
     event.target.classList.add('selected');
 }
 
-// Sauvegarde et chargement des données
+// Gestion de la base de données localStorage
+const DB = {
+    // Clés de stockage
+    KEYS: {
+        MAIN_DATA: 'todoListData',
+        BACKUPS: 'todoListBackups',
+        SETTINGS: 'todoListSettings'
+    },
+    
+    // Sauvegarde des données principales
+    saveData() {
+        try {
+            const data = {
+                tabs: tabs,
+                currentTabId: currentTabId,
+                version: '1.0',
+                lastModified: new Date().toISOString()
+            };
+            localStorage.setItem(this.KEYS.MAIN_DATA, JSON.stringify(data));
+            this.createBackup(data);
+            console.log('Données sauvegardées avec succès');
+            return true;
+        } catch (error) {
+            console.error('Erreur lors de la sauvegarde:', error);
+            // Fallback en cas d'erreur localStorage
+            window.appData = {
+                tabs: tabs,
+                currentTabId: currentTabId
+            };
+            return false;
+        }
+    },
+
+    // Chargement des données principales
+    loadData() {
+        try {
+            const savedData = localStorage.getItem(this.KEYS.MAIN_DATA);
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                tabs = data.tabs || [];
+                currentTabId = data.currentTabId;
+                console.log('Données chargées depuis localStorage');
+                return true;
+            } else {
+                // Vérifier le fallback mémoire
+                if (window.appData) {
+                    tabs = window.appData.tabs || [];
+                    currentTabId = window.appData.currentTabId;
+                    console.log('Données chargées depuis la mémoire (fallback)');
+                    return true;
+                }
+                return false;
+            }
+        } catch (error) {
+            console.error('Erreur lors du chargement:', error);
+            // Fallback en cas d'erreur
+            tabs = [];
+            currentTabId = null;
+            return false;
+        }
+    },
+
+    // Création d'une sauvegarde automatique
+    createBackup(data) {
+        try {
+            const backups = this.getBackups();
+            const newBackup = {
+                ...data,
+                backupDate: new Date().toISOString()
+            };
+            
+            backups.unshift(newBackup);
+            
+            // Garder seulement les 5 dernières sauvegardes
+            if (backups.length > 5) {
+                backups.splice(5);
+            }
+            
+            localStorage.setItem(this.KEYS.BACKUPS, JSON.stringify(backups));
+        } catch (error) {
+            console.error('Erreur lors de la création de sauvegarde:', error);
+        }
+    },
+
+    // Récupération des sauvegardes
+    getBackups() {
+        try {
+            const backups = localStorage.getItem(this.KEYS.BACKUPS);
+            return backups ? JSON.parse(backups) : [];
+        } catch (error) {
+            console.error('Erreur lors du chargement des sauvegardes:', error);
+            return [];
+        }
+    },
+
+    // Restauration depuis une sauvegarde
+    restoreFromBackup(backupIndex = 0) {
+        try {
+            const backups = this.getBackups();
+            if (backups[backupIndex]) {
+                const backup = backups[backupIndex];
+                tabs = backup.tabs || [];
+                currentTabId = backup.currentTabId;
+                this.saveData();
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Erreur lors de la restauration:', error);
+            return false;
+        }
+    },
+
+    // Export des données
+    exportData() {
+        try {
+            const data = {
+                tabs: tabs,
+                currentTabId: currentTabId,
+                version: '1.0',
+                exportDate: new Date().toISOString()
+            };
+            return JSON.stringify(data, null, 2);
+        } catch (error) {
+            console.error('Erreur lors de l\'export:', error);
+            return null;
+        }
+    },
+
+    // Import des données
+    importData(jsonData) {
+        try {
+            const data = JSON.parse(jsonData);
+            if (data.tabs && Array.isArray(data.tabs)) {
+                tabs = data.tabs;
+                currentTabId = data.currentTabId || (tabs.length > 0 ? tabs[0].id : null);
+                this.saveData();
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Erreur lors de l\'import:', error);
+            return false;
+        }
+    },
+
+    // Nettoyage des données
+    clearAll() {
+        try {
+            localStorage.removeItem(this.KEYS.MAIN_DATA);
+            localStorage.removeItem(this.KEYS.BACKUPS);
+            localStorage.removeItem(this.KEYS.SETTINGS);
+            tabs = [];
+            currentTabId = null;
+            window.appData = null;
+            return true;
+        } catch (error) {
+            console.error('Erreur lors du nettoyage:', error);
+            return false;
+        }
+    },
+
+    // Vérification de l'espace de stockage
+    getStorageInfo() {
+        try {
+            let totalSize = 0;
+            for (let key in localStorage) {
+                if (localStorage.hasOwnProperty(key)) {
+                    totalSize += localStorage[key].length;
+                }
+            }
+            return {
+                totalSize: totalSize,
+                todoListSize: localStorage.getItem(this.KEYS.MAIN_DATA)?.length || 0,
+                backupsSize: localStorage.getItem(this.KEYS.BACKUPS)?.length || 0,
+                available: true
+            };
+        } catch (error) {
+            return {
+                totalSize: 0,
+                todoListSize: 0,
+                backupsSize: 0,
+                available: false,
+                error: error.message
+            };
+        }
+    }
+};
+
+// Fonctions de compatibilité
 function saveData() {
-    const data = {
-        tabs: tabs,
-        currentTabId: currentTabId
-    };
-    // Simulation de sauvegarde en localStorage (remplacé par stockage en mémoire)
-    window.appData = data;
+    return DB.saveData();
 }
 
 function loadData() {
-    // Simulation de chargement depuis localStorage (remplacé par stockage en mémoire)
-    if (window.appData) {
-        tabs = window.appData.tabs || [];
-        currentTabId = window.appData.currentTabId;
-    }
+    return DB.loadData();
 }
 
 // Gestion des événements de drag over pour les colonnes
@@ -731,18 +911,187 @@ openTodoModal = function(columnId, todoId = null) {
     originalOpenTodoModal(columnId, todoId);
 };
 
+// Gestion de la modal de données
+function openDataModal() {
+    const modal = document.getElementById('dataModal');
+    modal.style.display = 'block';
+    updateStorageInfo();
+    updateBackupsList();
+    
+    // Empêcher le scroll du body sur mobile
+    if (isMobile()) {
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeDataModal() {
+    const modal = document.getElementById('dataModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+function updateStorageInfo() {
+    const storageInfo = DB.getStorageInfo();
+    const infoDiv = document.getElementById('storageInfo');
+    
+    if (storageInfo.available) {
+        const totalSizeKB = Math.round(storageInfo.totalSize / 1024 * 100) / 100;
+        const todoSizeKB = Math.round(storageInfo.todoListSize / 1024 * 100) / 100;
+        const backupsSizeKB = Math.round(storageInfo.backupsSize / 1024 * 100) / 100;
+        
+        infoDiv.innerHTML = `
+            <div class="storage-item">
+                <span>📝 Données Todo List:</span>
+                <span>${todoSizeKB} KB</span>
+            </div>
+            <div class="storage-item">
+                <span>💾 Sauvegardes:</span>
+                <span>${backupsSizeKB} KB</span>
+            </div>
+            <div class="storage-item">
+                <span>📊 Total localStorage:</span>
+                <span>${totalSizeKB} KB</span>
+            </div>
+            <div class="storage-status">
+                ✅ LocalStorage disponible
+            </div>
+        `;
+    } else {
+        infoDiv.innerHTML = `
+            <div class="storage-status error">
+                ❌ LocalStorage non disponible: ${storageInfo.error || 'Erreur inconnue'}
+            </div>
+        `;
+    }
+}
+
+function updateBackupsList() {
+    const backups = DB.getBackups();
+    const backupsDiv = document.getElementById('backupsList');
+    
+    if (backups.length === 0) {
+        backupsDiv.innerHTML = '<p>Aucune sauvegarde disponible</p>';
+        return;
+    }
+    
+    const backupsHTML = backups.map((backup, index) => {
+        const date = new Date(backup.backupDate).toLocaleString('fr-FR');
+        const tabsCount = backup.tabs ? backup.tabs.length : 0;
+        const todosCount = backup.tabs ? backup.tabs.reduce((total, tab) => {
+            return total + (tab.columns ? tab.columns.reduce((colTotal, col) => colTotal + (col.todos ? col.todos.length : 0), 0) : 0);
+        }, 0) : 0;
+        
+        return `
+            <div class="backup-item">
+                <div class="backup-info">
+                    <strong>Sauvegarde ${index + 1}</strong><br>
+                    <small>📅 ${date}</small><br>
+                    <small>📁 ${tabsCount} onglet(s), 📝 ${todosCount} todo(s)</small>
+                </div>
+                <div class="backup-actions">
+                    <button class="btn-small" onclick="restoreBackup(${index})" title="Restaurer cette sauvegarde">
+                        🔄 Restaurer
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    backupsDiv.innerHTML = backupsHTML;
+}
+
+function restoreBackup(index) {
+    if (confirm('Êtes-vous sûr de vouloir restaurer cette sauvegarde ? Toutes les données actuelles seront remplacées.')) {
+        if (DB.restoreFromBackup(index)) {
+            alert('Sauvegarde restaurée avec succès !');
+            renderTabs();
+            if (currentTabId) {
+                switchTab(currentTabId);
+            }
+            closeDataModal();
+        } else {
+            alert('Erreur lors de la restauration de la sauvegarde.');
+        }
+    }
+}
+
+function exportData() {
+    const exportedData = DB.exportData();
+    if (exportedData) {
+        const blob = new Blob([exportedData], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `todolist-export-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        alert('Données exportées avec succès !');
+    } else {
+        alert('Erreur lors de l\'export des données.');
+    }
+}
+
+function handleImportFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const jsonData = e.target.result;
+            if (confirm('Êtes-vous sûr de vouloir importer ces données ? Toutes les données actuelles seront remplacées.')) {
+                if (DB.importData(jsonData)) {
+                    alert('Données importées avec succès !');
+                    renderTabs();
+                    if (currentTabId) {
+                        switchTab(currentTabId);
+                    }
+                    closeDataModal();
+                } else {
+                    alert('Erreur lors de l\'import : format de fichier invalide.');
+                }
+            }
+        } catch (error) {
+            alert('Erreur lors de la lecture du fichier.');
+            console.error('Import error:', error);
+        }
+    };
+    reader.readAsText(file);
+    
+    // Reset input file
+    event.target.value = '';
+}
+
+function clearAllData() {
+    const confirmText = 'SUPPRIMER';
+    const userInput = prompt(`Cette action supprimera définitivement toutes vos données.\nTapez "${confirmText}" pour confirmer :`);
+    
+    if (userInput === confirmText) {
+        if (DB.clearAll()) {
+            alert('Toutes les données ont été supprimées.');
+            location.reload(); // Recharger la page pour repartir à zéro
+        } else {
+            alert('Erreur lors de la suppression des données.');
+        }
+    }
+}
+
 // Gestion des événements clavier
 document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
         closeTabModal();
         closeColumnModal();
         closeTodoModal();
+        closeDataModal();
     }
 });
 
 // Gestion du clic en dehors des modales
 window.addEventListener('click', function(event) {
-    const modals = ['tabModal', 'columnModal', 'todoModal'];
+    const modals = ['tabModal', 'columnModal', 'todoModal', 'dataModal'];
     modals.forEach(modalId => {
         const modal = document.getElementById(modalId);
         if (event.target === modal) {

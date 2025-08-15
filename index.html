@@ -11,6 +11,9 @@
         <div class="header">
             <h1>✨ Todo List Avancée</h1>
             <p>Organisez vos tâches avec des onglets et colonnes personnalisables</p>
+            <div class="header-actions">
+                <button class="header-btn" onclick="openDataModal()" title="Gérer les données">⚙️ Données</button>
+            </div>
         </div>
 
         <div class="tabs-container" id="tabsContainer">
@@ -119,6 +122,49 @@
             </div>
             <button class="btn-primary" onclick="saveTodo()">Créer</button>
             <button class="btn-secondary" onclick="closeTodoModal()">Annuler</button>
+        </div>
+    </div>
+
+    <!-- Modal pour gérer les données -->
+    <div id="dataModal" class="modal">
+        <div class="modal-content data-modal">
+            <span class="close" onclick="closeDataModal()">&times;</span>
+            <h2>Gestion des Données</h2>
+            
+            <div class="data-section">
+                <h3>📊 Informations de Stockage</h3>
+                <div id="storageInfo" class="storage-info">
+                    Chargement des informations...
+                </div>
+            </div>
+
+            <div class="data-section">
+                <h3>💾 Sauvegardes Automatiques</h3>
+                <div id="backupsList" class="backups-list">
+                    Chargement des sauvegardes...
+                </div>
+            </div>
+
+            <div class="data-section">
+                <h3>📥 Import / Export</h3>
+                <div class="import-export-actions">
+                    <button class="btn-primary" onclick="exportData()">📤 Exporter les Données</button>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="importFile" accept=".json" style="display: none;" onchange="handleImportFile(event)">
+                        <button class="btn-secondary" onclick="document.getElementById('importFile').click()">📥 Importer des Données</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-section">
+                <h3>🗑️ Actions Dangereuses</h3>
+                <div class="danger-zone">
+                    <button class="btn-danger" onclick="clearAllData()">🗑️ Effacer Toutes les Données</button>
+                    <p class="warning-text">⚠️ Cette action est irréversible !</p>
+                </div>
+            </div>
+
+            <button class="btn-secondary" onclick="closeDataModal()">Fermer</button>
         </div>
     </div>
 
