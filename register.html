@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription - Todo List Avancée</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="auth-body">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>✨ Inscription</h1>
+                <p>Créez votre compte Todo List</p>
+            </div>
+
+            <form id="registerForm" class="auth-form">
+                <div class="form-group">
+                    <label for="registerName">Nom :</label>
+                    <input type="text" id="registerName" required placeholder="Votre nom">
+                </div>
+
+                <div class="form-group">
+                    <label for="registerEmail">Email :</label>
+                    <input type="email" id="registerEmail" required placeholder="votre@email.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="registerPassword">Mot de passe :</label>
+                    <input type="password" id="registerPassword" required placeholder="Minimum 6 caractères" minlength="6">
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Confirmer le mot de passe :</label>
+                    <input type="password" id="confirmPassword" required placeholder="Répétez votre mot de passe">
+                </div>
+
+                <div class="auth-actions">
+                    <button type="submit" class="btn-primary">Créer mon compte</button>
+                    <a href="login.html" class="auth-link">Déjà un compte ? Se connecter</a>
+                </div>
+            </form>
+
+            <div class="auth-footer">
+                <a href="index.html" class="back-link">← Retour à l'accueil</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+</body>
+</html>

@@ -9,19 +9,113 @@ let draggedTab = null;
 let draggedColumn = null;
 let draggedColumnIndex = null;
 let dropIndicator = null;
+let currentUser = null;
 
 // Initialisation
 document.addEventListener('DOMContentLoaded', function() {
-    loadData();
-    if (tabs.length === 0) {
-        // Créer un onglet par défaut si aucun n'existe
-        createDefaultTab();
-    }
-    renderTabs();
-    if (tabs.length > 0) {
-        switchTab(tabs[0].id);
-    }
+    initializeApp();
 });
+
+function initializeApp() {
+    // Vérifier l'authentification
+    currentUser = Auth.getCurrentUser();
+    updateAuthUI();
+    
+    // Charger les données seulement si utilisateur connecté
+    if (currentUser) {
+        loadData();
+        if (tabs.length === 0) {
+            // Créer un onglet par défaut si aucun n'existe
+            createDefaultTab();
+        }
+        renderTabs();
+        if (tabs.length > 0) {
+            switchTab(tabs[0].id);
+        }
+        showMainApp();
+    } else {
+        showWelcomeScreen();
+    }
+}
+
+function updateAuthUI() {
+    const userInfo = document.getElementById('userInfo');
+    const userName = document.getElementById('userName');
+    const authButtons = document.getElementById('authButtons');
+    const loginBtn = authButtons.querySelector('button:not(.logout-btn)');
+    const logoutBtn = authButtons.querySelector('.logout-btn');
+    
+    if (currentUser) {
+        userInfo.style.display = 'block';
+        userName.textContent = currentUser.name;
+        loginBtn.style.display = 'none';
+        logoutBtn.style.display = 'inline-block';
+    } else {
+        userInfo.style.display = 'none';
+        loginBtn.style.display = 'inline-block';
+        logoutBtn.style.display = 'none';
+    }
+}
+
+function showWelcomeScreen() {
+    const tabContent = document.getElementById('tabContent');
+    tabContent.innerHTML = `
+        <div class="welcome-screen">
+            <div class="welcome-content">
+                <h2>👋 Bienvenue dans Todo List Avancée</h2>
+                <p>Pour commencer à organiser vos tâches, vous devez vous connecter ou créer un compte.</p>
+                <div class="welcome-actions">
+                    <button class="btn-primary large-btn" onclick="goToLogin()">🔐 Se connecter</button>
+                    <button class="btn-secondary large-btn" onclick="goToRegister()">✨ Créer un compte</button>
+                </div>
+                <div class="welcome-features">
+                    <h3>✨ Fonctionnalités :</h3>
+                    <ul>
+                        <li>📁 Onglets personnalisables</li>
+                        <li>📋 Colonnes organisables</li>
+                        <li>🎨 Couleurs personnalisées</li>
+                        <li>💾 Sauvegarde automatique</li>
+                        <li>📤 Import/Export des données</li>
+                        <li>🔐 Données privées et sécurisées</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Masquer les onglets si pas connecté
+    const tabsContainer = document.getElementById('tabsContainer');
+    tabsContainer.style.display = 'none';
+}
+
+function showMainApp() {
+    const tabsContainer = document.getElementById('tabsContainer');
+    tabsContainer.style.display = 'flex';
+}
+
+function goToLogin() {
+    window.location.href = 'login.html';
+}
+
+function goToRegister() {
+    window.location.href = 'register.html';
+}
+
+// Fonction de déconnexion redéfinie pour mettre à jour l'interface
+function logout() {
+    if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+        Auth.logout();
+        currentUser = null;
+        tabs = [];
+        currentTabId = null;
+        
+        // Mettre à jour l'interface
+        updateAuthUI();
+        showWelcomeScreen();
+        
+        alert('Vous avez été déconnecté');
+    }
+}
 
 function createDefaultTab() {
     const defaultTab = {
@@ -703,19 +797,32 @@ const DB = {
         BACKUPS: 'todoListBackups',
         SETTINGS: 'todoListSettings'
     },
+
+    // Génération des clés utilisateur
+    getUserKey(baseKey, userId) {
+        return `${baseKey}_${userId}`;
+    },
+
+    // Récupération de l'ID utilisateur actuel
+    getCurrentUserId() {
+        return currentUser ? currentUser.id : 'anonymous';
+    },
     
     // Sauvegarde des données principales
     saveData() {
         try {
+            const userId = this.getCurrentUserId();
             const data = {
                 tabs: tabs,
                 currentTabId: currentTabId,
                 version: '1.0',
-                lastModified: new Date().toISOString()
+                lastModified: new Date().toISOString(),
+                userId: userId
             };
-            localStorage.setItem(this.KEYS.MAIN_DATA, JSON.stringify(data));
+            const userDataKey = this.getUserKey(this.KEYS.MAIN_DATA, userId);
+            localStorage.setItem(userDataKey, JSON.stringify(data));
             this.createBackup(data);
-            console.log('Données sauvegardées avec succès');
+            console.log('Données sauvegardées avec succès pour l\'utilisateur:', userId);
             return true;
         } catch (error) {
             console.error('Erreur lors de la sauvegarde:', error);
@@ -731,14 +838,27 @@ const DB = {
     // Chargement des données principales
     loadData() {
         try {
-            const savedData = localStorage.getItem(this.KEYS.MAIN_DATA);
+            const userId = this.getCurrentUserId();
+            const userDataKey = this.getUserKey(this.KEYS.MAIN_DATA, userId);
+            const savedData = localStorage.getItem(userDataKey);
+            
             if (savedData) {
                 const data = JSON.parse(savedData);
                 tabs = data.tabs || [];
                 currentTabId = data.currentTabId;
-                console.log('Données chargées depuis localStorage');
+                console.log('Données chargées depuis localStorage pour l\'utilisateur:', userId);
                 return true;
             } else {
+                // Vérifier l'ancien format pour migration
+                const oldData = localStorage.getItem(this.KEYS.MAIN_DATA);
+                if (oldData && userId === 'anonymous') {
+                    const data = JSON.parse(oldData);
+                    tabs = data.tabs || [];
+                    currentTabId = data.currentTabId;
+                    console.log('Données migrées depuis l\'ancien format');
+                    return true;
+                }
+                
                 // Vérifier le fallback mémoire
                 if (window.appData) {
                     tabs = window.appData.tabs || [];
@@ -760,6 +880,7 @@ const DB = {
     // Création d'une sauvegarde automatique
     createBackup(data) {
         try {
+            const userId = this.getCurrentUserId();
             const backups = this.getBackups();
             const newBackup = {
                 ...data,
@@ -773,7 +894,8 @@ const DB = {
                 backups.splice(5);
             }
             
-            localStorage.setItem(this.KEYS.BACKUPS, JSON.stringify(backups));
+            const userBackupsKey = this.getUserKey(this.KEYS.BACKUPS, userId);
+            localStorage.setItem(userBackupsKey, JSON.stringify(backups));
         } catch (error) {
             console.error('Erreur lors de la création de sauvegarde:', error);
         }
@@ -782,7 +904,9 @@ const DB = {
     // Récupération des sauvegardes
     getBackups() {
         try {
-            const backups = localStorage.getItem(this.KEYS.BACKUPS);
+            const userId = this.getCurrentUserId();
+            const userBackupsKey = this.getUserKey(this.KEYS.BACKUPS, userId);
+            const backups = localStorage.getItem(userBackupsKey);
             return backups ? JSON.parse(backups) : [];
         } catch (error) {
             console.error('Erreur lors du chargement des sauvegardes:', error);
