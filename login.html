@@ -14,19 +14,32 @@
                 <p>Connectez-vous à votre Todo List</p>
             </div>
 
-            <form id="loginForm" class="auth-form">
+            <form id="loginForm" class="auth-form" novalidate>
                 <div class="form-group">
                     <label for="loginEmail">Email :</label>
-                    <input type="email" id="loginEmail" required placeholder="votre@email.com">
+                    <input type="email" 
+                           id="loginEmail" 
+                           name="email"
+                           required 
+                           placeholder="votre@email.com"
+                           autocomplete="email"
+                           autocapitalize="none"
+                           autocorrect="off"
+                           spellcheck="false">
                 </div>
 
                 <div class="form-group">
                     <label for="loginPassword">Mot de passe :</label>
-                    <input type="password" id="loginPassword" required placeholder="Votre mot de passe">
+                    <input type="password" 
+                           id="loginPassword" 
+                           name="password"
+                           required 
+                           placeholder="Votre mot de passe"
+                           autocomplete="current-password">
                 </div>
 
                 <div class="auth-actions">
-                    <button type="submit" class="btn-primary">Se connecter</button>
+                    <button type="submit" class="btn-primary" id="loginSubmitBtn">Se connecter</button>
                     <a href="register.html" class="auth-link">Pas encore de compte ? S'inscrire</a>
                 </div>
             </form>

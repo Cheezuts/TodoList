@@ -96,21 +96,36 @@ const Auth = {
     // Connexion d'un utilisateur
     login(email, password) {
         try {
-            if (!this.validateEmail(email)) {
-                throw new Error('Format d\'email invalide');
+            console.log('Auth.login appelé avec:', { email: email ? 'présent' : 'vide', password: password ? 'présent' : 'vide' });
+            
+            if (!email || !email.trim()) {
+                throw new Error('Email requis');
             }
             if (!password) {
                 throw new Error('Mot de passe requis');
             }
+            
+            const cleanEmail = email.trim().toLowerCase();
+            console.log('Email nettoyé:', cleanEmail);
+            
+            if (!this.validateEmail(cleanEmail)) {
+                throw new Error('Format d\'email invalide');
+            }
 
             const users = this.getUsers();
-            const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+            console.log('Nombre d\'utilisateurs trouvés:', users.length);
+            
+            const user = users.find(u => u.email.toLowerCase() === cleanEmail);
+            console.log('Utilisateur trouvé:', user ? 'oui' : 'non');
             
             if (!user) {
                 throw new Error('Email ou mot de passe incorrect');
             }
 
-            if (user.password !== this.hashPassword(password)) {
+            const hashedPassword = this.hashPassword(password);
+            console.log('Mots de passe correspondent:', user.password === hashedPassword);
+            
+            if (user.password !== hashedPassword) {
                 throw new Error('Email ou mot de passe incorrect');
             }
 
@@ -123,9 +138,11 @@ const Auth = {
             };
 
             localStorage.setItem(this.KEYS.CURRENT_USER, JSON.stringify(sessionUser));
+            console.log('Session créée avec succès');
             return { success: true, user: sessionUser };
 
         } catch (error) {
+            console.error('Erreur dans Auth.login:', error);
             return { success: false, error: error.message };
         }
     },
@@ -155,52 +172,150 @@ const Auth = {
 
 // Gestion des formulaires
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Auth.js chargé - DOM ready');
+    
     // Formulaire de connexion
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
-        loginForm.addEventListener('submit', function(e) {
-            e.preventDefault();
+        console.log('Formulaire de connexion trouvé');
+        
+        // Ajouter plusieurs types d'événements pour assurer la compatibilité mobile
+        loginForm.addEventListener('submit', handleLogin);
+        
+        // Ajouter un event listener sur le bouton directement pour mobile
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function(e) {
+                console.log('Bouton de connexion cliqué');
+                if (loginForm.checkValidity()) {
+                    e.preventDefault();
+                    handleLogin(e);
+                }
+            });
             
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            
-            const result = Auth.login(email, password);
-            
-            if (result.success) {
-                alert('Connexion réussie ! Bienvenue ' + result.user.name);
-                window.location.href = 'index.html';
-            } else {
-                alert('Erreur de connexion : ' + result.error);
-            }
-        });
+            // Événement tactile pour mobile
+            submitBtn.addEventListener('touchend', function(e) {
+                console.log('Événement tactile sur bouton connexion');
+                if (loginForm.checkValidity()) {
+                    e.preventDefault();
+                    handleLogin(e);
+                }
+            });
+        }
+    }
+    
+    function handleLogin(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log('Tentative de connexion...');
+        
+        const emailInput = document.getElementById('loginEmail');
+        const passwordInput = document.getElementById('loginPassword');
+        
+        if (!emailInput || !passwordInput) {
+            console.error('Champs email ou mot de passe non trouvés');
+            alert('Erreur : Champs de formulaire non trouvés');
+            return;
+        }
+        
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+        
+        console.log('Email:', email ? 'présent' : 'vide');
+        console.log('Mot de passe:', password ? 'présent' : 'vide');
+        
+        if (!email || !password) {
+            alert('Veuillez remplir tous les champs');
+            return;
+        }
+        
+        const result = Auth.login(email, password);
+        console.log('Résultat de connexion:', result);
+        
+        if (result.success) {
+            alert('Connexion réussie ! Bienvenue ' + result.user.name);
+            window.location.href = 'index.html';
+        } else {
+            alert('Erreur de connexion : ' + result.error);
+        }
     }
 
     // Formulaire d'inscription
     const registerForm = document.getElementById('registerForm');
     if (registerForm) {
-        registerForm.addEventListener('submit', function(e) {
-            e.preventDefault();
+        console.log('Formulaire d\'inscription trouvé');
+        
+        registerForm.addEventListener('submit', handleRegister);
+        
+        // Ajouter event listener sur le bouton pour mobile
+        const submitBtn = registerForm.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function(e) {
+                console.log('Bouton d\'inscription cliqué');
+                if (registerForm.checkValidity()) {
+                    e.preventDefault();
+                    handleRegister(e);
+                }
+            });
             
-            const name = document.getElementById('registerName').value;
-            const email = document.getElementById('registerEmail').value;
-            const password = document.getElementById('registerPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            
-            // Vérifier que les mots de passe correspondent
-            if (password !== confirmPassword) {
-                alert('Les mots de passe ne correspondent pas');
-                return;
-            }
-            
-            const result = Auth.register(name, email, password);
-            
-            if (result.success) {
-                alert('Inscription réussie ! Vous pouvez maintenant vous connecter.');
-                window.location.href = 'login.html';
-            } else {
-                alert('Erreur d\'inscription : ' + result.error);
-            }
-        });
+            submitBtn.addEventListener('touchend', function(e) {
+                console.log('Événement tactile sur bouton inscription');
+                if (registerForm.checkValidity()) {
+                    e.preventDefault();
+                    handleRegister(e);
+                }
+            });
+        }
+    }
+    
+    function handleRegister(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log('Tentative d\'inscription...');
+        
+        const nameInput = document.getElementById('registerName');
+        const emailInput = document.getElementById('registerEmail');
+        const passwordInput = document.getElementById('registerPassword');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+        
+        if (!nameInput || !emailInput || !passwordInput || !confirmPasswordInput) {
+            console.error('Champs de formulaire manquants');
+            alert('Erreur : Champs de formulaire non trouvés');
+            return;
+        }
+        
+        const name = nameInput.value.trim();
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+        
+        console.log('Nom:', name ? 'présent' : 'vide');
+        console.log('Email:', email ? 'présent' : 'vide');
+        console.log('Mot de passe:', password ? 'présent' : 'vide');
+        console.log('Confirmation:', confirmPassword ? 'présent' : 'vide');
+        
+        if (!name || !email || !password || !confirmPassword) {
+            alert('Veuillez remplir tous les champs');
+            return;
+        }
+        
+        // Vérifier que les mots de passe correspondent
+        if (password !== confirmPassword) {
+            alert('Les mots de passe ne correspondent pas');
+            return;
+        }
+        
+        const result = Auth.register(name, email, password);
+        console.log('Résultat d\'inscription:', result);
+        
+        if (result.success) {
+            alert('Inscription réussie ! Vous pouvez maintenant vous connecter.');
+            window.location.href = 'login.html';
+        } else {
+            alert('Erreur d\'inscription : ' + result.error);
+        }
     }
 
     // Redirection si déjà connecté (pour les pages de connexion/inscription)

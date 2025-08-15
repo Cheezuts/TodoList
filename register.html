@@ -14,29 +14,54 @@
                 <p>Créez votre compte Todo List</p>
             </div>
 
-            <form id="registerForm" class="auth-form">
+            <form id="registerForm" class="auth-form" novalidate>
                 <div class="form-group">
                     <label for="registerName">Nom :</label>
-                    <input type="text" id="registerName" required placeholder="Votre nom">
+                    <input type="text" 
+                           id="registerName" 
+                           name="name"
+                           required 
+                           placeholder="Votre nom"
+                           autocomplete="name"
+                           autocapitalize="words">
                 </div>
 
                 <div class="form-group">
                     <label for="registerEmail">Email :</label>
-                    <input type="email" id="registerEmail" required placeholder="votre@email.com">
+                    <input type="email" 
+                           id="registerEmail" 
+                           name="email"
+                           required 
+                           placeholder="votre@email.com"
+                           autocomplete="email"
+                           autocapitalize="none"
+                           autocorrect="off"
+                           spellcheck="false">
                 </div>
 
                 <div class="form-group">
                     <label for="registerPassword">Mot de passe :</label>
-                    <input type="password" id="registerPassword" required placeholder="Minimum 6 caractères" minlength="6">
+                    <input type="password" 
+                           id="registerPassword" 
+                           name="new-password"
+                           required 
+                           placeholder="Minimum 6 caractères" 
+                           minlength="6"
+                           autocomplete="new-password">
                 </div>
 
                 <div class="form-group">
                     <label for="confirmPassword">Confirmer le mot de passe :</label>
-                    <input type="password" id="confirmPassword" required placeholder="Répétez votre mot de passe">
+                    <input type="password" 
+                           id="confirmPassword" 
+                           name="confirm-password"
+                           required 
+                           placeholder="Répétez votre mot de passe"
+                           autocomplete="new-password">
                 </div>
 
                 <div class="auth-actions">
-                    <button type="submit" class="btn-primary">Créer mon compte</button>
+                    <button type="submit" class="btn-primary" id="registerSubmitBtn">Créer mon compte</button>
                     <a href="login.html" class="auth-link">Déjà un compte ? Se connecter</a>
                 </div>
             </form>

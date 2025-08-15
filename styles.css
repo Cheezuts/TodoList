@@ -1031,6 +1031,34 @@ body {
     padding: 30px;
 }
 
+.auth-form input {
+    font-size: 16px !important; /* Empêche le zoom sur iOS */
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: 8px;
+    border: 2px solid #ddd;
+    padding: 12px;
+    width: 100%;
+    transition: border-color 0.3s ease;
+    background: white;
+}
+
+.auth-form input:focus {
+    outline: none;
+    border-color: #4facfe;
+    box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+}
+
+.auth-form button {
+    font-size: 16px !important; /* Empêche le zoom sur iOS */
+    -webkit-appearance: none;
+    appearance: none;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
 .auth-actions {
     text-align: center;
     margin-top: 20px;
